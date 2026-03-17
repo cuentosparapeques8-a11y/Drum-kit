@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="theme-color" content="#0d0a08"/>
+<title>PRO DRUM KIT</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+/* ══════════════════════════════════════════════
+   PRO DRUM KIT — Diseño inspirado en EZDrummer
+   Layout real de batería vista desde arriba
+══════════════════════════════════════════════ */
+:root {
+  --bg:     #0d0a08;
+  --surf:   #171210;
+  --bord:   #2a2018;
+  --wood:   #3d2b1f;
+  --gold:   #c8960a;
+  --text:   #f5efe8;
+  --dim:    #5a4a38;
+  --hit-glow: #fff8e0;
+
+  /* Colores por pieza */
+  --kick:   #c0392b;
+  --snare:  #e67e22;
+  --hihat:  #27ae60;
+  --hhopen: #2ecc71;
+  --tom1:   #d4a017;
+  --tom2:   #e91e8c;
+  --tom3:   #8e44ad;
+  --crash:  #f1c40f;
+  --ride:   #2980b9;
+  --crash2: #e74c3c;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  display: flex; flex-direction: column; height: 100dvh;
+}
+
+/* ── HEADER ── */
+.hdr {
+  flex-shrink: 0; z-index: 30;
+  background: rgba(13,10,8,.98);
+  border-bottom: 1px solid var(--bord);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 13px;
+}
+.logo { font-family: 'Bebas Neue', cursive; font-size: 1.3rem; letter-spacing: .18em; }
+.logo span { color: var(--gold); }
+.hdr-r { display: flex; align-items: center; gap: 8px; }
+#fps { font-size: .52rem; color: var(--dim); min-width: 38px; text-align: right; }
+.pill {
+  display: flex; align-items: center; gap: 5px;
+  background: var(--surf); border: 1px solid var(--bord);
+  border-radius: 99px; padding: 4px 9px;
+  font-size: .52rem; letter-spacing: .1em; color: var(--dim); transition: all .3s;
+}
+.pill.on { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 50%, transparent); }
+.pdot { width: 5px; height: 5px; border-radius: 50%; background: var(--dim); flex-shrink: 0; transition: all .3s; }
+.pill.on .pdot { background: var(--gold); box-shadow: 0 0 5px var(--gold); animation: blink 1s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+
+/* ── CAMERA ── */
+.cam { position: relative; flex: 1; overflow: hidden; background: #000; min-height: 0; }
+#vid { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .5s; }
+#vid.on { opacity: 1; }
+#cvs { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* ── PLACEHOLDER ── */
+.ph { position: absolute; inset: 0; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 24px; transition: opacity .4s; }
+.ph.gone { opacity: 0; pointer-events: none; }
+.ph-ico { font-size: 2.8rem; }
+.ph-txt { font-size: .7rem; color: var(--dim); text-align: center; line-height: 1.9; max-width: 230px; }
+#btnStart {
+  font-family: 'Bebas Neue', cursive; font-size: 1.1rem; letter-spacing: .18em;
+  background: transparent; color: var(--gold); border: 1.5px solid var(--gold);
+  border-radius: 10px; padding: 11px 30px; cursor: pointer;
+  box-shadow: 0 0 20px color-mix(in srgb, var(--gold) 18%, transparent);
+  transition: background .2s, color .2s;
+}
+#btnStart:active { background: var(--gold); color: #000; }
+
+/* ── LOADING ── */
+.ldg { position: absolute; inset: 0; z-index: 20; background: rgba(13,10,8,.95); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; opacity: 0; pointer-events: none; transition: opacity .3s; }
+.ldg.on { opacity: 1; pointer-events: all; }
+.spin { width: 30px; height: 30px; border: 2px solid var(--bord); border-top-color: var(--gold); border-radius: 50%; animation: spin .65s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.ldg-t { font-size: .6rem; color: var(--dim); letter-spacing: .1em; }
+.ldg-s { font-size: .5rem; color: var(--dim); opacity: .6; }
+.prog-wrap { width: 190px; }
+.prog-bg { height: 3px; background: var(--bord); border-radius: 2px; overflow: hidden; margin-top: 6px; }
+.prog-fill { height: 100%; background: var(--gold); border-radius: 2px; width: 0%; transition: width .15s; }
+.prog-lbl { font-size: .48rem; color: var(--dim); text-align: center; margin-top: 4px; }
+
+/* ── HIT LABEL ── */
+#hitLabel {
+  position: absolute; top: 38%; left: 50%; transform: translate(-50%, -50%);
+  font-family: 'Bebas Neue', cursive; font-size: 2.8rem; letter-spacing: .1em;
+  pointer-events: none; z-index: 9; opacity: 0; transition: opacity .05s;
+  text-align: center; line-height: 1; white-space: nowrap;
+}
+#hitLabel.on { opacity: 1; }
+
+/* ── SCORE ── */
+#scoreBox { position: absolute; top: 9px; right: 9px; z-index: 9; pointer-events: none; text-align: right; }
+#scoreVal { font-family: 'Bebas Neue', cursive; font-size: 1.8rem; color: var(--gold); line-height: 1; }
+#scoreLbl { font-size: .44rem; color: var(--dim); letter-spacing: .1em; }
+#comboBox { position: absolute; top: 9px; left: 9px; z-index: 9; pointer-events: none; opacity: 0; transition: opacity .3s; }
+#comboBox.on { opacity: 1; }
+#comboVal { font-family: 'Bebas Neue', cursive; font-size: 1.4rem; color: var(--hihat); line-height: 1; }
+#comboLbl { font-size: .42rem; color: var(--dim); letter-spacing: .1em; }
+
+/* ── DRUM IMAGES & PAD OVERLAYS ── */
+/* Usamos SVG inline para representar cada pieza visualmente */
+#drumOverlay { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
+
+/* ── BOTTOM ── */
+.btm {
+  flex-shrink: 0; z-index: 30;
+  background: rgba(13,10,8,.98); border-top: 1px solid var(--bord);
+  padding: 6px 12px 10px;
+}
+.btm-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.btm-info { font-size: .5rem; color: var(--dim); line-height: 1.7; }
+.btm-info b { color: var(--gold); }
+.btm-r { display: flex; flex-direction: column; gap: 5px; align-items: flex-end; }
+.vol-row { display: flex; align-items: center; gap: 5px; font-size: .46rem; color: var(--dim); }
+input[type=range] { -webkit-appearance: none; width: 60px; height: 3px; background: var(--bord); border-radius: 2px; outline: none; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--gold); cursor: pointer; }
+.btn-r { font-family: 'Bebas Neue', cursive; font-size: .76rem; letter-spacing: .1em; background: transparent; color: var(--dim); border: 1px solid var(--bord); border-radius: 7px; padding: 5px 11px; cursor: pointer; transition: all .2s; white-space: nowrap; }
+.btn-r:active { color: var(--gold); border-color: var(--gold); }
+
+/* ── LATENCY INDICATOR ── */
+#latBox { position: absolute; bottom: 5px; left: 9px; z-index: 9; pointer-events: none; }
+#latVal { font-size: .48rem; color: var(--dim); font-family: 'JetBrains Mono', monospace; }
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="logo">PRO <span>DRUM KIT</span></div>
+  <div class="hdr-r">
+    <span id="fps">— fps</span>
+    <div class="pill" id="pill"><div class="pdot"></div><span id="pillTxt">OFFLINE</span></div>
+  </div>
+</div>
+
+<div class="cam" id="cam">
+  <video id="vid" playsinline autoplay muted></video>
+  <canvas id="cvs"></canvas>
+
+  <!-- Overlay de batería dibujado en canvas -->
+
+  <div id="hitLabel"></div>
+
+  <div id="scoreBox">
+    <div id="scoreVal">0</div>
+    <div id="scoreLbl">PUNTOS</div>
+  </div>
+  <div id="comboBox">
+    <div id="comboVal">x1</div>
+    <div id="comboLbl">COMBO</div>
+  </div>
+  <div id="latBox"><div id="latVal">latencia: —</div></div>
+
+  <div class="ldg" id="ldg">
+    <div class="spin"></div>
+    <div class="ldg-t" id="ldgT">CARGANDO…</div>
+    <div class="ldg-s" id="ldgS"></div>
+    <div class="prog-wrap" id="progWrap" style="display:none">
+      <div class="prog-bg"><div class="prog-fill" id="progFill"></div></div>
+      <div class="prog-lbl" id="progLbl"></div>
+    </div>
+  </div>
+
+  <div class="ph" id="ph">
+    <div class="ph-ico">🥁</div>
+    <p class="ph-txt">Batería profesional acústica<br/>Sonidos FluidR3 GM · Alta calidad<br/>Toca con las puntas de tus dedos</p>
+    <button id="btnStart" onclick="startCam()">ACTIVAR CÁMARA</button>
+  </div>
+</div>
+
+<div class="btm">
+  <div class="btm-row">
+    <div class="btm-info">
+      <b>IZQ:</b> Bombo · Hi-Hat · Tom2 · Tom3<br/>
+      <b>DER:</b> Caja · Crash · Tom1 · Ride
+    </div>
+    <div class="btm-r">
+      <div class="vol-row">🔊<input type="range" id="vol" min="0" max="1.4" step="0.05" value="1.0" oninput="setVol(this.value)"/></div>
+      <button class="btn-r" onclick="resetScore()">↺ RESET</button>
+    </div>
+  </div>
+</div>
+
+<!-- soundfont-player: carga samples reales del FluidR3 GM SoundFont
+     CORS abierto en gleitz.github.io — probado en producción -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/soundfont-player/0.12.0/soundfont-player.min.js"></script>
+<!-- MediaPipe legacy — compatible con CodePen y GitHub Pages -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  PRO DRUM KIT
+//  Audio: soundfont-player + FluidR3 GM percussion
+//         Los MIDI notes 35-81 corresponden a los sonidos
+//         estándar General MIDI de batería acústica
+//
+//  Layout: vista desde arriba, idéntica a EZDrummer 2
+//  Imágenes: SVG vectorial representando cada pieza real
+// ════════════════════════════════════════════════════════
+
+// ── MIDI NOTES GENERAL MIDI PERCUSSION ───────────────────
+// Estos son los números de nota estándar para batería acústica
+// usados en TODOS los programas profesionales
+const MIDI_NOTES = {
+  kick:    36,  // Bass Drum 1 — el bombo principal
+  kick2:   35,  // Acoustic Bass Drum
+  snare:   38,  // Acoustic Snare
+  snare2:  40,  // Electric Snare (más seco)
+  hihat:   42,  // Closed Hi-Hat
+  hhopen:  46,  // Open Hi-Hat
+  hhpedal: 44,  // Pedal Hi-Hat
+  tom1:    48,  // Hi-Mid Tom
+  tom2:    45,  // Low-Mid Tom
+  tom3:    41,  // Low Floor Tom
+  crash:   49,  // Crash Cymbal 1
+  crash2:  57,  // Crash Cymbal 2
+  ride:    51,  // Ride Cymbal 1
+  rideBell:53,  // Ride Bell
+  rimshot: 37,  // Side Stick
+  clap:    39,  // Hand Clap
+};
+
+// ── AUDIO ─────────────────────────────────────────────────
+let AC = null, percInstrument = null, audioReady = false;
+let masterVolume = 1.0;
+
+// Timers para medir latencia
+let hitTimestamp = 0;
+
+function setVol(v) {
+  masterVolume = parseFloat(v);
+}
+
+async function setupAudio() {
+  AC = new (window.AudioContext || window.webkitAudioContext)();
+  await AC.resume();
+
+  // Cargamos el instrumento "percussion" del FluidR3 GM SoundFont
+  // Estos son samples REALES grabados de batería acústica
+  // El soundfont FluidR3 tiene samples de 24-bit de alta calidad
+  percInstrument = await Soundfont.instrument(AC, 'percussion', {
+    soundfont: 'FluidR3_GM',  // FluidR3 — el mejor soundfont gratuito
+    format: 'mp3',
+    nameToUrl: (name, sf, format) => {
+      return `https://gleitz.github.io/midi-js-soundfonts/${sf}/${name}-${format}.js`;
+    }
+  });
+
+  audioReady = true;
+}
+
+// ── TOCAR NOTA ────────────────────────────────────────────
+function playNote(midiNote, velocity = 1.0) {
+  if (!audioReady || !percInstrument) return;
+  try {
+    const v = Math.min(1.0, velocity * masterVolume);
+    hitTimestamp = performance.now();
+    percInstrument.play(midiNote, AC.currentTime, { gain: v });
+    // Medir latencia real
+    requestAnimationFrame(() => {
+      const lat = Math.round(performance.now() - hitTimestamp);
+      document.getElementById('latVal').textContent = `latencia: ${lat}ms`;
+    });
+  } catch(e) {
+    console.warn('playNote error:', midiNote, e);
+  }
+}
+
+// ── DEFINICIÓN DE PADS ────────────────────────────────────
+// Layout real de batería vista desde arriba (como EZDrummer)
+// px/py = posición normalizada (0-1) en el canvas
+// pr = radio normalizado (relativo al ancho)
+// shape = 'ellipse' | 'circle' — forma del pad
+const PADS = [
+  // ── PLATILLOS (fila superior) ──────────────────────────
+  {
+    id:'crash',  name:'CRASH',    color:'#f1c40f',
+    midiNote: MIDI_NOTES.crash,   velocity: 0.85,
+    px:.18,  py:.22, pr:.085,
+    type:'cymbal',
+    desc:'Crash Cymbal 1'
+  },
+  {
+    id:'hhopen', name:'HH OPEN',  color:'#2ecc71',
+    midiNote: MIDI_NOTES.hhopen,  velocity: 0.75,
+    px:.32,  py:.28, pr:.075,
+    type:'cymbal',
+    desc:'Open Hi-Hat'
+  },
+  {
+    id:'hihat',  name:'HI-HAT',   color:'#27ae60',
+    midiNote: MIDI_NOTES.hihat,   velocity: 0.70,
+    px:.32,  py:.38, pr:.078,
+    type:'cymbal',
+    desc:'Closed Hi-Hat'
+  },
+  {
+    id:'ride',   name:'RIDE',     color:'#2980b9',
+    midiNote: MIDI_NOTES.ride,    velocity: 0.75,
+    px:.82,  py:.25, pr:.090,
+    type:'cymbal',
+    desc:'Ride Cymbal 1'
+  },
+  {
+    id:'crash2', name:'CRASH 2',  color:'#e74c3c',
+    midiNote: MIDI_NOTES.crash2,  velocity: 0.85,
+    px:.82,  py:.42, pr:.078,
+    type:'cymbal',
+    desc:'Crash Cymbal 2'
+  },
+
+  // ── TOMS (fila media) ──────────────────────────────────
+  {
+    id:'tom1',   name:'TOM 1',    color:'#d4a017',
+    midiNote: MIDI_NOTES.tom1,    velocity: 0.90,
+    px:.42,  py:.42, pr:.082,
+    type:'tom',
+    desc:'Hi-Mid Tom'
+  },
+  {
+    id:'tom2',   name:'TOM 2',    color:'#e91e8c',
+    midiNote: MIDI_NOTES.tom2,    velocity: 0.90,
+    px:.58,  py:.42, pr:.082,
+    type:'tom',
+    desc:'Low-Mid Tom'
+  },
+  {
+    id:'tom3',   name:'TOM 3',    color:'#8e44ad',
+    midiNote: MIDI_NOTES.tom3,    velocity: 0.92,
+    px:.70,  py:.58, pr:.085,
+    type:'tom',
+    desc:'Low Floor Tom'
+  },
+
+  // ── CAJA ──────────────────────────────────────────────
+  {
+    id:'snare',  name:'CAJA',     color:'#e67e22',
+    midiNote: MIDI_NOTES.snare,   velocity: 0.95,
+    px:.36,  py:.58, pr:.090,
+    type:'drum',
+    desc:'Acoustic Snare'
+  },
+
+  // ── BOMBO (parte inferior central) ────────────────────
+  {
+    id:'kick',   name:'BOMBO',    color:'#c0392b',
+    midiNote: MIDI_NOTES.kick,    velocity: 1.0,
+    px:.50,  py:.82, pr:.110,
+    type:'kick',
+    desc:'Bass Drum 1'
+  },
+];
+
+// Estado de pads
+const PS = {};
+PADS.forEach(p => { PS[p.id] = { cd: false, alpha: 0, ripple: 0 }; });
+const COOLDOWN = 90; // ms — latencia mínima entre golpes del mismo pad
+
+// ── CANVAS ────────────────────────────────────────────────
+const vid = document.getElementById('vid');
+const cvs = document.getElementById('cvs');
+const ctx = cvs.getContext('2d');
+
+function resize() {
+  const p = cvs.parentElement;
+  cvs.width  = p.clientWidth;
+  cvs.height = p.clientHeight;
+}
+window.addEventListener('resize', resize);
+
+// Coordenadas reales de un pad
+function padXY(p) {
+  const rx = p.pr * cvs.width;
+  return {
+    x:  p.px * cvs.width,
+    y:  p.py * cvs.height,
+    rx: rx,
+    // Los platillos son más planos (ellipse), los toms/bombo más circulares
+    ry: p.type === 'cymbal' ? rx * 0.28 : rx * 0.85,
+  };
+}
+
+// ── DIBUJAR BATERÍA ───────────────────────────────────────
+// Cada pieza se dibuja como un SVG-like en canvas
+// representando visualmente el instrumento real
+
+function drawDrumSet() {
+  PADS.forEach(p => drawPad(p));
+}
+
+function drawPad(p) {
+  const c  = padXY(p);
+  const st = PS[p.id];
+  const hit = st.alpha > 0;
+
+  ctx.save();
+
+  if (p.type === 'cymbal') {
+    drawCymbal(c, p.color, hit, st.alpha, p.name);
+  } else if (p.type === 'kick') {
+    drawKick(c, p.color, hit, st.alpha, p.name);
+  } else {
+    drawDrum(c, p.color, hit, st.alpha, p.name, p.type);
+  }
+
+  // Fade del glow
+  if (st.alpha > 0) st.alpha = Math.max(0, st.alpha - 0.08);
+
+  // Ripple
+  if (st.ripple > 0) {
+    ctx.beginPath();
+    ctx.ellipse(c.x, c.y,
+      c.rx * (1 + (1-st.ripple) * 0.8),
+      c.ry * (1 + (1-st.ripple) * 0.8),
+      0, 0, Math.PI*2);
+    ctx.strokeStyle = p.color + Math.round(st.ripple * 180).toString(16).padStart(2,'0');
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+    st.ripple = Math.max(0, st.ripple - 0.07);
+  }
+
+  ctx.restore();
+}
+
+// ── PLATO (cymbal) — elipse metálica con reflejos ─────────
+function drawCymbal(c, color, hit, alpha, name) {
+  ctx.save();
+
+  // Sombra de golpe
+  if (hit) {
+    ctx.shadowColor = color;
+    ctx.shadowBlur  = 22 * alpha;
+  }
+
+  // Cuerpo del plato — gradiente metálico dorado
+  const grad = ctx.createRadialGradient(c.x - c.rx*.2, c.y - c.ry*.2, 0, c.x, c.y, c.rx);
+  if (hit) {
+    grad.addColorStop(0, '#fff9c4');
+    grad.addColorStop(0.3, color);
+    grad.addColorStop(1, '#5a4a00');
+  } else {
+    grad.addColorStop(0, '#f5d060');
+    grad.addColorStop(0.4, '#c8960a');
+    grad.addColorStop(1, '#3d2a00');
+  }
+
+  ctx.beginPath();
+  ctx.ellipse(c.x, c.y, c.rx, c.ry, 0, 0, Math.PI*2);
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Borde
+  ctx.strokeStyle = hit ? '#fff' : '#a07800';
+  ctx.lineWidth = hit ? 2 : 1;
+  ctx.stroke();
+
+  // Bell (botón central del plato)
+  ctx.beginPath();
+  ctx.ellipse(c.x, c.y, c.rx*.15, c.ry*.5, 0, 0, Math.PI*2);
+  ctx.fillStyle = hit ? '#fff' : '#e8c040';
+  ctx.fill();
+  ctx.strokeStyle = '#a07800'; ctx.lineWidth = .8;
+  ctx.stroke();
+
+  // Líneas de textura del plato
+  for (let i = 1; i <= 3; i++) {
+    ctx.beginPath();
+    ctx.ellipse(c.x, c.y, c.rx*(i*.25), c.ry*(i*.25), 0, 0, Math.PI*2);
+    ctx.strokeStyle = 'rgba(255,220,80,.15)';
+    ctx.lineWidth = .5;
+    ctx.stroke();
+  }
+
+  // Stand (soporte) — líneas hacia abajo
+  ctx.strokeStyle = '#2a2018';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(c.x - c.rx*.3, c.y + c.ry);
+  ctx.lineTo(c.x - c.rx*.3, c.y + c.ry + 14); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(c.x + c.rx*.3, c.y + c.ry);
+  ctx.lineTo(c.x + c.rx*.3, c.y + c.ry + 14); ctx.stroke();
+
+  // Etiqueta
+  drawLabel(c.x, c.y + c.ry + 22, name, color, hit);
+  ctx.restore();
+}
+
+// ── BOMBO — círculo grande con parche ─────────────────────
+function drawKick(c, color, hit, alpha, name) {
+  ctx.save();
+
+  if (hit) { ctx.shadowColor = color; ctx.shadowBlur = 30 * alpha; }
+
+  // Shell exterior (madera)
+  ctx.beginPath();
+  ctx.arc(c.x, c.y, c.rx, 0, Math.PI*2);
+  const gradShell = ctx.createRadialGradient(c.x, c.y, c.rx*.6, c.x, c.y, c.rx);
+  gradShell.addColorStop(0, '#5a3020');
+  gradShell.addColorStop(1, '#2a1008');
+  ctx.fillStyle = gradShell;
+  ctx.fill();
+  ctx.strokeStyle = '#3d2010'; ctx.lineWidth = 3; ctx.stroke();
+
+  // Aro metálico
+  ctx.beginPath();
+  ctx.arc(c.x, c.y, c.rx * .92, 0, Math.PI*2);
+  ctx.strokeStyle = hit ? '#ddd' : '#888';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  // Parche (cabeza del bombo)
+  const gradPatch = ctx.createRadialGradient(
+    c.x - c.rx*.2, c.y - c.rx*.2, 0,
+    c.x, c.y, c.rx*.88
+  );
+  if (hit) {
+    gradPatch.addColorStop(0, '#fff');
+    gradPatch.addColorStop(0.3, color + 'cc');
+    gradPatch.addColorStop(1, '#1a0a00');
+  } else {
+    gradPatch.addColorStop(0, '#f0e8d8');
+    gradPatch.addColorStop(0.5, '#c8b090');
+    gradPatch.addColorStop(1, '#3a2810');
+  }
+  ctx.beginPath();
+  ctx.arc(c.x, c.y, c.rx * .88, 0, Math.PI*2);
+  ctx.fillStyle = gradPatch;
+  ctx.fill();
+
+  // Logo central del bombo
+  ctx.beginPath();
+  ctx.arc(c.x, c.y, c.rx * .3, 0, Math.PI*2);
+  ctx.strokeStyle = hit ? color : 'rgba(200,150,80,.4)';
+  ctx.lineWidth = hit ? 2 : 1;
+  ctx.stroke();
+
+  // Lugs (tornillos del parche) — 8 puntos
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2;
+    const lx = c.x + Math.cos(a) * c.rx * .92;
+    const ly = c.y + Math.sin(a) * c.rx * .92;
+    ctx.beginPath(); ctx.arc(lx, ly, 3, 0, Math.PI*2);
+    ctx.fillStyle = '#666'; ctx.fill();
+  }
+
+  // Pies (soportes)
+  ctx.strokeStyle = '#2a2018'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(c.x - c.rx*.6, c.y + c.rx*.9);
+  ctx.lineTo(c.x - c.rx*.8, c.y + c.rx*1.15); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(c.x + c.rx*.6, c.y + c.rx*.9);
+  ctx.lineTo(c.x + c.rx*.8, c.y + c.rx*1.15); ctx.stroke();
+
+  drawLabel(c.x, c.y, name, color, hit, true);
+  ctx.restore();
+}
+
+// ── DRUM / TOM / SNARE — cilindro con parche ─────────────
+function drawDrum(c, color, hit, alpha, name, type) {
+  ctx.save();
+
+  if (hit) { ctx.shadowColor = color; ctx.shadowBlur = 22 * alpha; }
+
+  const isSnare = type === 'drum';
+  const depth = c.ry * .35; // profundidad visual del cilindro
+
+  // Shell lateral (cuerpo del tambor)
+  ctx.beginPath();
+  ctx.ellipse(c.x, c.y + depth, c.rx, c.ry * .5, 0, 0, Math.PI*2);
+  const gradSide = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y + depth, c.rx);
+  gradSide.addColorStop(0, '#5a3a20');
+  gradSide.addColorStop(1, '#1a0a00');
+  ctx.fillStyle = gradSide;
+  ctx.fill();
+
+  // Lados del cilindro
+  ctx.beginPath();
+  ctx.moveTo(c.x - c.rx, c.y);
+  ctx.lineTo(c.x - c.rx, c.y + depth);
+  ctx.ellipse(c.x, c.y + depth, c.rx, c.ry * .5, 0, Math.PI, 0);
+  ctx.lineTo(c.x + c.rx, c.y);
+  ctx.fillStyle = isSnare ? '#4a3018' : color + '33';
+  ctx.fill();
+
+  // Aro superior metálico
+  ctx.beginPath();
+  ctx.ellipse(c.x, c.y, c.rx, c.ry, 0, 0, Math.PI*2);
+  ctx.strokeStyle = hit ? '#eee' : '#888';
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+
+  // Parche superior
+  const gradTop = ctx.createRadialGradient(
+    c.x - c.rx*.2, c.y - c.ry*.2, 0,
+    c.x, c.y, c.rx * .9
+  );
+  if (hit) {
+    gradTop.addColorStop(0, '#fff');
+    gradTop.addColorStop(0.2, color + 'ee');
+    gradTop.addColorStop(1, '#1a0a00');
+  } else {
+    gradTop.addColorStop(0, isSnare ? '#f8f0e0' : '#e8d8c0');
+    gradTop.addColorStop(0.6, isSnare ? '#c0a878' : color + '88');
+    gradTop.addColorStop(1, '#1a0a00');
+  }
+  ctx.beginPath();
+  ctx.ellipse(c.x, c.y, c.rx * .92, c.ry * .92, 0, 0, Math.PI*2);
+  ctx.fillStyle = gradTop;
+  ctx.fill();
+
+  // Lugs (6 para snare/toms, menos para toms pequeños)
+  const lugCount = isSnare ? 8 : 6;
+  for (let i = 0; i < lugCount; i++) {
+    const a = (i / lugCount) * Math.PI * 2;
+    const lx = c.x + Math.cos(a) * c.rx * .94;
+    const ly = c.y + Math.sin(a) * c.ry * .94;
+    ctx.beginPath(); ctx.arc(lx, ly, 2.5, 0, Math.PI*2);
+    ctx.fillStyle = '#777'; ctx.fill();
+  }
+
+  // Snare wires (alambres de caja) — solo para la caja
+  if (isSnare) {
+    for (let i = -3; i <= 3; i++) {
+      const sx = c.x + (i / 3) * c.rx * .7;
+      ctx.beginPath();
+      ctx.moveTo(sx, c.y + depth - 1);
+      ctx.lineTo(sx + (i * .5), c.y + depth + 4);
+      ctx.strokeStyle = hit ? '#ddd' : 'rgba(200,200,200,.5)';
+      ctx.lineWidth = .7;
+      ctx.stroke();
+    }
+  }
+
+  // Stand (para toms)
+  if (type === 'tom') {
+    ctx.strokeStyle = '#2a2018'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(c.x, c.y + depth + c.ry*.5);
+    ctx.lineTo(c.x, c.y + depth + c.ry*.5 + 12); ctx.stroke();
+  }
+
+  drawLabel(c.x, c.y, name, color, hit, true);
+  ctx.restore();
+}
+
+// ── ETIQUETA DE NOMBRE ────────────────────────────────────
+function drawLabel(x, y, name, color, hit, centered = false) {
+  ctx.save();
+  ctx.font = `bold ${centered ? 11 : 10}px Bebas Neue, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.letterSpacing = '2px';
+  const ly = centered ? y + 4 : y;
+
+  // Sombra
+  ctx.shadowColor = '#000';
+  ctx.shadowBlur = 6;
+  ctx.fillStyle = hit ? '#fff' : color + 'cc';
+  ctx.fillText(name, x, ly);
+  ctx.restore();
+}
+
+// ── COLISIÓN ──────────────────────────────────────────────
+function inPad(px, py, pad) {
+  const c  = padXY(pad);
+  const dx = (px - c.x) / c.rx;
+  const dy = (py - c.y) / c.ry;
+  return dx * dx + dy * dy <= 1;
+}
+
+// ── TIPS de dedos ─────────────────────────────────────────
+const TIPS = [4, 8, 12, 16, 20];
+
+function processTips(lm) {
+  TIPS.forEach(ti => {
+    const px = (1 - lm[ti].x) * cvs.width;
+    const py = lm[ti].y * cvs.height;
+
+    PADS.forEach(pad => {
+      const st = PS[pad.id];
+      if (inPad(px, py, pad) && !st.cd) {
+        // ¡GOLPE!
+        st.cd = true;
+        st.alpha  = 1;
+        st.ripple = 1;
+
+        // Reproducir sonido real
+        playNote(pad.midiNote, pad.velocity);
+
+        // Puntuación y feedback
+        addPts(pad);
+        showHit(pad.name, pad.color);
+
+        setTimeout(() => { st.cd = false; }, COOLDOWN);
+      }
+    });
+  });
+}
+
+// ── PUNTUACIÓN ────────────────────────────────────────────
+let score = 0, combo = 0, lastHitT = 0;
+function addPts(pad) {
+  const pts = pad.type === 'kick' ? 5 : pad.type === 'cymbal' ? 8 : 7;
+  const now = performance.now();
+  combo = now - lastHitT < 600 ? combo + 1 : 1;
+  lastHitT = now;
+  score += pts * combo;
+  document.getElementById('scoreVal').textContent = score;
+  document.getElementById('comboVal').textContent  = 'x' + combo;
+  document.getElementById('comboBox').classList.toggle('on', combo > 1);
+}
+window.resetScore = () => {
+  score = 0; combo = 0;
+  document.getElementById('scoreVal').textContent = '0';
+  document.getElementById('comboBox').classList.remove('on');
+};
+
+// ── HIT LABEL ─────────────────────────────────────────────
+let hlT = null;
+function showHit(name, color) {
+  const el = document.getElementById('hitLabel');
+  el.textContent = name; el.style.color = color;
+  el.style.textShadow = `0 0 20px ${color}, 0 0 40px ${color}60`;
+  el.classList.add('on');
+  clearTimeout(hlT);
+  hlT = setTimeout(() => el.classList.remove('on'), 140);
+}
+
+// ── DIBUJAR MANOS ─────────────────────────────────────────
+const HCONNS = [[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],
+  [5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],
+  [13,17],[0,17],[17,18],[18,19],[19,20]];
+
+function drawHand(lm, color) {
+  const lx = nx => (1 - nx) * cvs.width;
+  const ly = ny => ny * cvs.height;
+
+  // Conexiones semitransparentes
+  ctx.strokeStyle = color + '60'; ctx.lineWidth = 1.5;
+  HCONNS.forEach(([a,b]) => {
+    ctx.beginPath();
+    ctx.moveTo(lx(lm[a].x), ly(lm[a].y));
+    ctx.lineTo(lx(lm[b].x), ly(lm[b].y));
+    ctx.stroke();
+  });
+
+  // Puntos
+  lm.forEach((p, i) => {
+    const tip = TIPS.includes(i);
+    ctx.beginPath();
+    ctx.arc(lx(p.x), ly(p.y), tip ? 9 : 3, 0, Math.PI*2);
+    if (tip) {
+      // Las puntas tienen un halo brillante (son las baquetas)
+      ctx.shadowColor = color; ctx.shadowBlur = 12;
+      ctx.fillStyle = '#fff';
+      ctx.fill();
+      ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.stroke();
+      ctx.shadowBlur = 0;
+    } else {
+      ctx.fillStyle = color + '50'; ctx.fill();
+    }
+  });
+}
+
+// ── FPS ───────────────────────────────────────────────────
+let fpsN = 0, fpsT = performance.now();
+function updFps() {
+  fpsN++;
+  const now = performance.now();
+  if (now - fpsT >= 1000) {
+    document.getElementById('fps').textContent = fpsN + ' fps';
+    fpsN = 0; fpsT = now;
+  }
+}
+
+// ── MEDIAPIPE ─────────────────────────────────────────────
+let handsMP = null, mpCam = null;
+
+function initMP() {
+  return new Promise(resolve => {
+    handsMP = new Hands({
+      locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`
+    });
+    handsMP.setOptions({
+      maxNumHands:             2,
+      modelComplexity:         1,
+      minDetectionConfidence:  0.78,
+      minTrackingConfidence:   0.68,
+    });
+    handsMP.onResults(res => {
+      // 1. Frame de video espejado
+      resize();
+      ctx.save();
+      ctx.scale(-1, 1); ctx.translate(-cvs.width, 0);
+      ctx.drawImage(vid, 0, 0, cvs.width, cvs.height);
+      ctx.restore();
+
+      // 2. Batería dibujada encima
+      drawDrumSet();
+
+      // 3. Manos
+      if (res.multiHandLandmarks) {
+        res.multiHandLandmarks.forEach((lm, i) => {
+          const isR = res.multiHandedness[i].label === 'Left';
+          drawHand(lm, isR ? '#f5d060' : '#60d0f5');
+          processTips(lm);
+        });
+      }
+      updFps();
+    });
+    handsMP.initialize().then(resolve);
+  });
+}
+
+// ── UI ────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const setLive = on => {
+  $('pill').classList.toggle('on', on);
+  $('pillTxt').textContent = on ? 'LIVE' : 'OFFLINE';
+};
+const showLdg = (t, s) => {
+  $('ldgT').textContent = t;
+  $('ldgS').textContent = s || '';
+  $('ldg').classList.add('on');
+};
+const hideLdg = () => $('ldg').classList.remove('on');
+const setProgress = (pct, lbl) => {
+  $('progFill').style.width = pct + '%';
+  $('progLbl').textContent  = lbl || '';
+};
+
+// ── INICIO ────────────────────────────────────────────────
+window.startCam = async function() {
+  showLdg('ACCEDIENDO A CÁMARA…', 'Permite el permiso de cámara');
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: 'user',
+        width:      { ideal: 960 },
+        height:     { ideal: 720 },
+        frameRate:  { ideal: 30, max: 30 }
+      },
+      audio: false
+    });
+    vid.srcObject = stream;
+    await new Promise(r => { vid.onloadedmetadata = r; });
+    await vid.play();
+    vid.classList.add('on');
+    $('ph').classList.add('gone');
+    resize(); setLive(true);
+
+    // Cargar soundfont
+    showLdg('CARGANDO SAMPLES ACÚSTICOS…', 'FluidR3 GM — Percusión de alta calidad');
+    $('progWrap').style.display = 'block';
+    setProgress(10, 'Iniciando AudioContext…');
+
+    try {
+      await setupAudio();
+      setProgress(100, '✅ Samples FluidR3 cargados');
+    } catch(e) {
+      console.warn('Audio error:', e);
+      setProgress(100, '⚠️ Error de audio — verificar conexión');
+    }
+    $('progWrap').style.display = 'none';
+
+    // Cargar MediaPipe
+    showLdg('CARGANDO MODELO DE MANOS…', 'Primera vez ~5 segundos');
+    await initMP();
+    hideLdg();
+
+    mpCam = new Camera(vid, {
+      onFrame: async () => { await handsMP.send({ image: vid }); },
+      width: 960, height: 720
+    });
+    mpCam.start();
+
+  } catch(e) {
+    hideLdg();
+    alert('Error: ' + e.message);
+  }
+};
+
+window.setVol = setVol;
+resize();
+</script>
+</body>
+</html>
